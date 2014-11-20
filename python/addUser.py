@@ -5,9 +5,11 @@ con = sqlite.connect("doorlock.db")
 
 #check if table exists already
 cur = con.cursor()
-
-#cur.execute("CREATE TABLE IF NOT EXISTS users(number TEXT PRIMARY KEY, passwordHash TEXT)")
-#Why is this a syntax error?
+try:
+	cur.execute("CREATE TABLE users(number TEXT PRIMARY KEY, passwordHash TEXT)")
+	print "Creating users table..."
+except:
+	print "Found users table"
 
 while True:
 	rawNum = raw_input("Enter phone number: ")
