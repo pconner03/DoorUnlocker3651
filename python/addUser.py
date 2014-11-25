@@ -1,7 +1,7 @@
-import sqlite
+import sqlite3
 import getpass
 import hashlib #sqlite has no hash functions
-con = sqlite.connect("doorlock.db")
+con = sqlite3.connect("doorlock.db")
 
 #check if table exists already
 cur = con.cursor()

@@ -5,15 +5,17 @@ Hack to get around Twilio's suggested method for receiving messages
 from twilio.rest import TwilioRestClient as TRC
 import credentials #local file. requires two string variables: account_sid and auth_token
 #import daemon #TODO  
-import sqlite
+import sqlite3
 import time
 import datetime
 from email.utils import parsedate
 import hashlib
+import serial
+
+
 
 def main():
 	TIME_TO_SLEEP = 25.0 #poll every 25 seconds
-
 	client = TRC(credentials.account_sid, credentials.auth_token)
 
 	twilioNumber = client.phone_numbers.list()[0].phone_number
@@ -39,7 +41,7 @@ def main():
 		time.sleep(TIME_TO_SLEEP)
 
 def parseText(num, password):
-	con = sqlite.connect("doorlock.db")
+	con = sqlite3.connect("doorlock.db")
 	cur = con.cursor()
 	query = "SELECT passwordHash FROM users WHERE number='" + num+ "';"
 	cur.execute(query)
@@ -49,6 +51,10 @@ def parseText(num, password):
 	else:
 		if hashlib.sha256(password).hexdigest() == result[0]:
 			print "Valid attempt!!!"
+			ser = serial.Serial('/dev/ttyACM1', 9600)
+			while 1:
+				ser.write('1')
+				print ser.readline()
 		else:
 			print "Invalid attempt by known user"
 
