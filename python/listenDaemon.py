@@ -24,7 +24,7 @@ def main():
 	#TODO - turn into a daemon
 	while True:
 		newtime = None
-		for m in client.messages.list(date_sent = datetime.date.today()):
+		for m in client.messages.list():
 			if m.from_ != twilioNumber: #ignore messages we sent
 				mTime = parsedate(m.date_sent)
 				if mTime > lastTimeChecked:
@@ -51,9 +51,14 @@ def parseText(num, password):
 	else:
 		if hashlib.sha256(password).hexdigest() == result[0]:
 			print "Valid attempt!!!"
-			ser = serial.Serial('/dev/ttyACM1', 9600)
+			ser = serial.Serial('/dev/tty.usbmodemfa131', 9600)
+			angle = 0
 			while 1:
-				ser.write('1')
+				# angle += 45
+				# if(angle == 360):
+				# 	angle = 0
+				# ser.write(str(angle))
+				ser.write(str(1))
 				print ser.readline()
 		else:
 			print "Invalid attempt by known user"
