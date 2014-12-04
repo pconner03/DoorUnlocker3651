@@ -31,3 +31,14 @@ def inRange(type, percent):
 	else:
 		tup = LONG_RANGE
 	return percent >= tup[0] and percent <= tup[1]
+
+def toKnockString(distanceArray):
+	st = ""
+	for i in distanceArray:
+		if inRange(SHORT, i):
+			st += SHORT
+		elif inRange(MEDIUM, i):
+			st += MEDIUM
+		else:
+			st += LONG
+	return st

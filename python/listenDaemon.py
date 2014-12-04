@@ -57,13 +57,14 @@ def parseText(num, password):
 	global ser
 	con = sqlite3.connect("doorlock.db")
 	cur = con.cursor()
-	query = "SELECT passwordHash FROM users WHERE number='" + num+ "';"
+	query = "SELECT passwordHash, knockPattern FROM users WHERE number='" + num+ "';"
 	cur.execute(query)
 	result = cur.fetchone()
 	if not result: #is this the way fetchone works??
 		print "Unknown user attempt"
 	else:
 		if hashlib.sha256(password).hexdigest() == result[0]:
+			secretKnock = result[1]
 			print "Valid attempt!!!"
 			
 			angle = 0
@@ -79,13 +80,14 @@ def parseText(num, password):
 			print "Distance percentages"
 			print distanceArray			
 
-			secretKnock = TEST_KNOCK #TODO - get from database
+			#secretKnock = TEST_KNOCK #TODO - get from database - DONE
 			if len(distanceArray) != len(secretKnock):
 				print "Incorrect knock (length)"
 				return
-			for i in range(len(distanceArray)):
-				if not common.inRange(secretKnock[i], distanceArray[i]):
+			compareString = common.toKnockString(distanceArray)
+			if compareString != secretKnock:
 					print "Incorrect knock (sequence)"
+					return
 			print "Correct knock!"
 			ser.write(common.UNLOCK_COMMAND)
 
