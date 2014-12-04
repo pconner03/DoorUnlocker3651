@@ -75,6 +75,7 @@ def parseText(num, password):
 			distanceArray = [int(i) for i in arrayString.split(",")[:-1] if i != "0"]
 			if len(distanceArray) == 0:
 				print "Knock timed out"
+				ser.write(common.LOCK_COMMAND)
 				return
 			distanceArray = common.convertToRatio(distanceArray)
 			print "Distance percentages"
@@ -83,16 +84,19 @@ def parseText(num, password):
 			#secretKnock = TEST_KNOCK #TODO - get from database - DONE
 			if len(distanceArray) != len(secretKnock):
 				print "Incorrect knock (length)"
+				ser.write(common.LOCK_COMMAND)
 				return
 			compareString = common.toKnockString(distanceArray)
 			if compareString != secretKnock:
 					print "Incorrect knock (sequence)"
+					ser.write(common.LOCK_COMMAND)
 					return
 			print "Correct knock!"
 			ser.write(common.UNLOCK_COMMAND)
 
 		else:
 			print "Invalid attempt by known user"
+			ser.write(common.LOCK_COMMAND)
 
 
 main()
