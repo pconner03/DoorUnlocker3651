@@ -12,29 +12,16 @@ from email.utils import parsedate
 import hashlib
 import serial
 
+
+import common
+
 twilioNumber = ""
 client = None
-
-LISTEN_COMMAND = str(1)
-UNLOCK_COMMAND = str(2)
-
-SHORT_RANGE = (0,33)
-MEDIUM_RANGE = (34, 66)
-LONG_RANGE = (67, 100)
-
-SHORT = "0"
-MEDIUM = "1"
-LONG = "2"
-'''
-0 is short
-1 is medium
-2 is long
-'''
 
 TEST_KNOCK = "100121"
 
 
-ser = serial.Serial('/dev/ttyACM0', 9600)
+ser = serial.Serial(common.TTY, 9600)
 
 
 def main():
@@ -67,8 +54,6 @@ def main():
 
 def parseText(num, password):
 	global twilioNumber
-	global UNLOCK_COMMAND
-	global LISTEN_COMMAND
 	global ser
 	con = sqlite3.connect("doorlock.db")
 	cur = con.cursor()
@@ -83,14 +68,14 @@ def parseText(num, password):
 			
 			angle = 0
 			confirmMessage = client.messages.create(to=num, from_=twilioNumber,body="Valid password. Start knocking!" )
-			ser.write(LISTEN_COMMAND)
+			ser.write(common.LISTEN_COMMAND)
 			arrayString = ser.readline()
 			print "Got string " + arrayString
 			distanceArray = [int(i) for i in arrayString.split(",")[:-1] if i != "0"]
 			if len(distanceArray) == 0:
 				print "Knock timed out"
 				return
-			distanceArray = convertToRatio(distanceArray)
+			distanceArray = common.convertToRatio(distanceArray)
 			print "Distance percentages"
 			print distanceArray			
 
@@ -99,31 +84,13 @@ def parseText(num, password):
 				print "Incorrect knock (length)"
 				return
 			for i in range(len(distanceArray)):
-				if not inRange(secretKnock[i], distanceArray[i]):
+				if not common.inRange(secretKnock[i], distanceArray[i]):
 					print "Incorrect knock (sequence)"
 			print "Correct knock!"
-			ser.write(UNLOCK_COMMAND)
+			ser.write(common.UNLOCK_COMMAND)
 
 		else:
 			print "Invalid attempt by known user"
 
-def convertToRatio(distanceArray):
-	mx = distanceArray[0]
-	for i in distanceArray:
-		if i > mx:
-			mx = i
-	for i in range(len(distanceArray)):
-		distanceArray[i] = int((float(distanceArray[i])/mx) * 100)
-	return distanceArray
-
-
-def inRange(type, percent):
-	if type == SHORT:
-		tup = SHORT_RANGE
-	elif type == MEDIUM:
-		tup = MEDIUM_RANGE
-	else:
-		tup = LONG_RANGE
-	return percent >= tup[0] and percent <= tup[1]
 
 main()
