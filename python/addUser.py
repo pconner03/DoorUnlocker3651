@@ -47,10 +47,27 @@ while True:
 	else:
 		distanceArray = common.convertToRatio(distanceArray)
 		toStr = common.toKnockString(distanceArray)
-		print "Knock string: " + toStr
-		confirmStr = raw_input("Accept knock string? (y/n)")
-		if confirmStr.lower() in ("yes", "y"):
-			break
+		ser.write(common.LISTEN_COMMAND)
+		print "Confirm secret knock"
+		#print "Knock string: " + toStr
+		#confirmStr = raw_input("Accept knock string? (y/n)")
+		#if confirmStr.lower() in ("yes", "y"):
+		#	break
+		arrayString = ser.readline()
+		distanceArray = [int(i) for i in arrayString.split(",")[:-1] if i != "0"]
+		if len(distanceArray) == 0:
+			print "Knock Timed Out. Please Retry"
+			continue
+		else:
+			distanceArray = common.convertToRatio(distanceArray)
+			secondStr = common.toKnockString(distanceArray)
+			if secondStr != toStr:
+				print "Knocks do not match. Please retry when prompted"
+				continue
+			else:
+				print "Knock accepted"
+				break
+
 
 print "Attempting to insert into database"
 
