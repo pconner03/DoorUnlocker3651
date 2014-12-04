@@ -15,8 +15,8 @@ import serial
 twilioNumber = ""
 client = None
 
-LISTEN_COMMAND = "1"
-UNLOCK_COMMAND = "2"
+LISTEN_COMMAND = str(1)
+UNLOCK_COMMAND = str(2)
 
 SHORT_RANGE = (0,33)
 MEDIUM_RANGE = (34, 66)
@@ -32,6 +32,9 @@ LONG = "2"
 '''
 
 TEST_KNOCK = "100121"
+
+
+ser = serial.Serial('/dev/ttyACM0', 9600)
 
 
 def main():
@@ -66,6 +69,7 @@ def parseText(num, password):
 	global twilioNumber
 	global UNLOCK_COMMAND
 	global LISTEN_COMMAND
+	global ser
 	con = sqlite3.connect("doorlock.db")
 	cur = con.cursor()
 	query = "SELECT passwordHash FROM users WHERE number='" + num+ "';"
@@ -76,7 +80,7 @@ def parseText(num, password):
 	else:
 		if hashlib.sha256(password).hexdigest() == result[0]:
 			print "Valid attempt!!!"
-			ser = serial.Serial('/dev/ttyACM0', 9600)
+			
 			angle = 0
 			confirmMessage = client.messages.create(to=num, from_=twilioNumber,body="Valid password. Start knocking!" )
 			ser.write(LISTEN_COMMAND)
