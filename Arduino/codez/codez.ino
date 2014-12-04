@@ -3,10 +3,11 @@
 Servo myServo;
 
 const int ledPin = 13;
-const int piezo = A0;
+const int piezo = A1;
 const int servoPin = 9;
+int pos = 0;
 
-const int knockThreshold = 200;
+const int knockThreshold = 400;
 const int timeout = 2000;
 
 void setup()
@@ -42,11 +43,13 @@ void flash(int n)
 void waitForSerial() {
   if(Serial.available()){
     int val = Serial.read() - '0';
-    Serial.println(val);
     if(val == 1) {
+      flash(10);
       listenForKnocks();
     } else if(val == 2) {
       unlock();
+    } else if(val == 3) {
+      lock();
     }
   }
   delay(100);
@@ -57,28 +60,25 @@ void listenForKnocks() {
   int index = 0;
   unsigned long timerStart = millis();
   int timerEnd = 0;
-  Serial.print("I'm listening");
-  while(analogRead(piezo) < knockThreshold) {
+  while(analogRead(piezo) > knockThreshold) {
     //TODO - check for long timeout
   }
-  Serial.println("Got past the long timeout");
   boolean isKnock = true;
   timerStart = millis();
   while(millis() - timerStart < timeout && index < 12) {
+//  while(true) {
     int piezoVal = analogRead(piezo);
-    if(!isKnock && (piezoVal > knockThreshold)) {
+    if(!isKnock && (piezoVal < knockThreshold)) {
       knockIntervals[index] = millis() - timerStart;
       isKnock = true;
       index++;
-      Serial.println(index);
       delay(10);
-    } else if(piezoVal <= knockThreshold && isKnock) {
+    } else if(piezoVal >= knockThreshold && isKnock) {
       timerStart = millis();
       isKnock = false;
       delay(10);
     }
   }
-  Serial.println("Finished looping");
   String knockArray = "";
   for(index = 0; index < 12; index++) {
 //    if(knockIntervals[index] == 0) break;
@@ -88,6 +88,25 @@ void listenForKnocks() {
   Serial.println(knockArray);
 }
 
-void unlock() {
-  myServo.write(135);
+void lock()
+{
+  if (myServo.read() < 60) {
+    for (pos = 50; pos < 160; pos += 1)
+    {
+      myServo.write(pos);
+      delay(15);
+    }
+  }
 }
+ 
+void unlock()
+{
+  if (myServo.read() > 60) {
+    for(pos = 160; pos>=50; pos -= 1)     // goes from 150 degrees to 50 degrees
+    {                                
+      myServo.write(pos);              // tell servo to go to position in variable 'pos'
+      delay(15);                       // waits 15ms for the servo to reach the position
+    }
+  }
+}
+
